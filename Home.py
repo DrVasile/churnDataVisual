@@ -1,6 +1,7 @@
 import streamlit
 
 streamlit.title("Data Avengers | No matter how your day starts, find time to make it gr8!")
+streamlit.header("Main")
 streamlit.image("./images/customer-churn.png", caption="Let the Butter Churn, Not Your Customers!",
                 use_column_width=True)
 

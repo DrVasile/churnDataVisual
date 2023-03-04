@@ -1,25 +1,23 @@
 import pandas
 import seaborn
 import streamlit
-import plotly.express
 
-from matplotlib import pyplot
 from plotly import express
 
 seaborn.set()
 
 
-@streamlit.cache
+@streamlit.cache_data
 def load_data():
-    data_frame = pandas.read_csv("../data/etapa1_full.csv")
+    data_frame = pandas.read_csv("./data/etapa1_full.csv", sep=";")
 
     return data_frame
 
 
-def get_count_plot(data_frame, column, set_hue=None):
-    value = data_frame[column].value_counts(normalize=True)
-    figure = express.bar(value, y=value, color=value.index, height=500, width=500)
-    figure.update_layout(xaxis_title=column, yaxis_title="Percentage")
+def get_count_plot(data_frame, column):
+    value = data_frame.groupby(column)["IS_CHURN"].mean()
+    figure = express.bar(value/100, color=value.index, width=500, height=500)
+    figure.update_layout(xaxis_title=column, yaxis_title="Churn Rate")
 
     return figure
 
@@ -40,8 +38,8 @@ def get_histogram(data_frame, column, set_hue=None):
 
 def show_plots(data_frame, features):
     data_frame = load_data()
-    churn_data = data_frame[data_frame["Churn"] == "Yes"]
-    retained_data = data_frame[data_frame["Churn"] == "No"]
+    churn_data = data_frame[data_frame["IS_CHURN"] == 1]
+    retained_data = data_frame[data_frame["IS_CHURN"] == 0]
     feature = streamlit.selectbox("**Choose Feature**", tuple(features))
 
     # ==============================================================
@@ -70,22 +68,3 @@ def show_plots(data_frame, features):
 
     # End of radio button
     # ===============================================================
-
-
-def churn_rate(data_frame, column):
-    data_frame_copy = data_frame.copy()
-    data_frame_copy["Churn"].replace(to_replace="Yes", value=1, inplace=True)
-    data_frame_copy["Churn"].replace(to_replace="No", value=0, inplace=True)
-    value = data_frame_copy.groupby([column])["Churn"].mean()
-    figure = express.bar(value, color=value.index, width=500, height=500)
-    figure.update_layout(xaxis_title=column, yaxis_title="Churn Rate")
-
-    return figure
-
-
-def plot_churn_rate(data_frame, features):
-
-    data_frame = load_data()
-    feature = streamlit.selectbox("**Choose Feature**", tuple(features))
-    figure = churn_rate(data_frame, feature)
-    streamlit.plotly_chart(figure)
